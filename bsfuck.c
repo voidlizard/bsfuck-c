@@ -6,6 +6,7 @@
 #include "strchunk.h"
 #include "miscdata/slist.h"
 #include "examples_common.h"
+#include "dumb-rb/ringbuf.h"
 
 #define SPACES " \r\n\t"
 
@@ -58,6 +59,27 @@ bool read_token(FILE *stream, slist **tok) {
     return true;
 }
 
+static inline char *dump(char **p, char c, bool force) {
+    static char out[1024*1024];
+    static char *ope = out+sizeof(out);
+
+    if( *p == 0 ) {
+        *p = out;
+        return *p;
+    }
+
+    if( (*p)+1 >= ope || force ) {
+        fwrite(out, 1, *p - out, stdout);
+        *p = out;
+    }
+
+    **p = c;
+    (*p)++;
+
+    return *p;
+}
+
+
 int main(int argc, char **argv) {
 
     int c = 0;
@@ -66,6 +88,8 @@ int main(int argc, char **argv) {
 
     while( read_token(stdin, &tokens) );
 
+    static char buf[1000000]; /* buf must survive until stdout is closed */
+    setvbuf ( stdout , buf , _IOFBF , sizeof(buf) );
 
     slist_reverse(&tokens);
 
@@ -75,7 +99,7 @@ int main(int argc, char **argv) {
     unsigned char **s = example_alloc(0, (n/2)*sizeof(unsigned char*));
 
     slist *it = tokens;
-    size_t i = 0, j = 0, k = 0;
+    size_t i = 0, j = 0, k = 1;
     for(; it; it = it->next, k++ ) {
         if( k % 2 == 0 ) {
             p[i++] = it->value;
@@ -84,13 +108,29 @@ int main(int argc, char **argv) {
         }
     }
 
+    size_t sum = 0;
+
+    char *pp = 0;
+    dump(&pp, 0, false);
+
     for( i = 0; i < n/2; i++ ) {
         for( j = 0; j < n/2; j++ ) {
-            fputs(p[i],stdout); //, "%s%s\n", p[i], s[j]);
-            fputs(s[j],stdout); //, "%s%s\n", p[i], s[j]);
-            fputc('\n', stdout);
+
+            char *sp = s[i];
+            for( sp = s[i]; *sp;  sp++ ) {
+                dump(&pp, *sp, false);
+            }
+
+            for( sp = p[j]; *sp;  sp++ ) {
+                dump(&pp, *sp, false);
+            }
+
+
+            dump(&pp, '\n', false);
         }
     }
+
+    dump(&pp, 0, true);
 
 }
 
