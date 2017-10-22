@@ -38,7 +38,7 @@ static inline void skipspace(FILE *stream) {
     }
 }
 
-bool read_token(FILE *stream, slist **tok) {
+static inline bool read_token(FILE *stream, slist **tok) {
 
     struct strchunk *ss = strchunk_create(0, example_alloc);
 
