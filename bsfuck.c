@@ -6,7 +6,6 @@
 #include "strchunk.h"
 #include "miscdata/slist.h"
 #include "examples_common.h"
-#include "dumb-rb/ringbuf.h"
 
 #define SPACES " \r\n\t"
 
@@ -20,8 +19,6 @@ static inline void emit_token(struct strchunk *ss, slist **to) {
     assert( el );
 
     strchunk_cstr(ss, el->value, len);
-
-/*    fprintf(stdout, "%s\n", el->value);*/
 
     slist *tmp = *to;
     tmp = slist_cons(el, tmp);
@@ -60,7 +57,7 @@ static inline bool read_token(FILE *stream, slist **tok) {
 }
 
 static inline char *dump(char **p, char c, bool force) {
-    static char out[1024*1024];
+    static char out[2*1024*1024];
     static char *ope = out+sizeof(out);
 
     if( *p == 0 ) {
@@ -87,9 +84,6 @@ int main(int argc, char **argv) {
     slist *tokens = 0;
 
     while( read_token(stdin, &tokens) );
-
-    static char buf[1000000]; /* buf must survive until stdout is closed */
-    setvbuf ( stdout , buf , _IOFBF , sizeof(buf) );
 
     slist_reverse(&tokens);
 
