@@ -9,7 +9,7 @@
 
 #define SPACES " \r\n\t"
 
-void emit_token(struct strchunk *ss, slist **to) {
+static inline void emit_token(struct strchunk *ss, slist **to) {
 
     size_t len = strchunk_length(ss) + 2;
 
@@ -29,7 +29,7 @@ void emit_token(struct strchunk *ss, slist **to) {
     strchunk_destroy(ss, 0, example_dealloc);
 }
 
-void skipspace(FILE *stream) {
+static inline void skipspace(FILE *stream) {
     int c = ' ';
     for( ; !feof(stream) && strchr(SPACES, c); c = fgetc(stream));
     if( !feof(stream) && c != ' ' ) {
@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
 
     while( read_token(stdin, &tokens) );
 
+
     slist_reverse(&tokens);
 
     size_t n = slist_length(tokens);
@@ -85,7 +86,9 @@ int main(int argc, char **argv) {
 
     for( i = 0; i < n/2; i++ ) {
         for( j = 0; j < n/2; j++ ) {
-            fprintf(stdout, "%s%s\n", p[i], s[j]);
+            fputs(p[i],stdout); //, "%s%s\n", p[i], s[j]);
+            fputs(s[j],stdout); //, "%s%s\n", p[i], s[j]);
+            fputc('\n', stdout);
         }
     }
 
